@@ -32,19 +32,24 @@ def parse_args():
               'rates from --epsilon and --delta-kls, NNN takes them as given '
               'weights; omitted, it is read off the rates'),
     )
+    # No default here: argparse would apply one whether or not the flag was
+    # given, so an unset interaction would be indistinguishable from 0.6.  The
+    # constructor resolves None per model.
     parser.add_argument(
-        '--epsilon', type=float, default=0.6,
-        help='KLS next-nearest-neighbour coupling; 0 recovers WASEP',
+        '--epsilon', type=float,
+        help=('KLS next-nearest-neighbour coupling, used by --model KLS and '
+              'ignored by the others; unset it is 0.6'),
     )
     parser.add_argument(
-        '--delta-kls', type=float, default=0.0,
-        help='KLS asymmetry parameter; 0 keeps particle-hole symmetry',
+        '--delta-kls', type=float,
+        help=('KLS asymmetry parameter, used by --model KLS and ignored by '
+              'the others; unset it is 0, which keeps particle-hole symmetry'),
     )
     parser.add_argument(
         '--right-weights', type=float, nargs=4, metavar=('W00', 'W01', 'W10', 'W11'),
         help=('explicit right-hop rates for flanking occupations '
-              '(n_b-1, n_b+2) = (0,0) (0,1) (1,0) (1,1); overrides the '
-              'KLS formula and must be given with --left-weights'),
+              '(n_b-1, n_b+2) = (0,0) (0,1) (1,0) (1,1); used by --model NNN, '
+              'which requires it together with --left-weights'),
     )
     parser.add_argument(
         '--left-weights', type=float, nargs=4, metavar=('W00', 'W01', 'W10', 'W11'),
@@ -118,11 +123,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-    if args.model == 'WASEP':
-        # The interaction defaults above describe the KLS model and are inert
-        # here; clearing them keeps --model WASEP usable without also having to
-        # pass --epsilon 0.
-        args.epsilon = args.delta_kls = 0.0
     parameters = dict(
         L=args.length, M=args.walkers, tmax=args.time,
         E=args.field, s=args.bias, k=args.measurement_strength,

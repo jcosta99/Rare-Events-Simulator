@@ -1,4 +1,4 @@
-# NNN/KLS simulation launcher
+# NNN simulation launcher
 
 **Activate the environment first.** `run_NNN.sh` calls plain `python3` and does not resolve an environment itself, so whatever is active when you launch it is what runs. The environment supplies the libraries the scripts import, and the Python that the C++ engine is built against, so you should compile it and run it from the same environment.
 
@@ -88,10 +88,10 @@ This submits, in this order:
 | 4   | `100`    | `-5.0` | `"NNN"` | `right_weights = [1.0, 0.4, 1.6, 1.0]`, `left_weights = [1.0, 1.6, 0.4, 1.0]` |
 | 5   | `200`    | `-8.0` | `"KLS"` | `epsilon = 0.6`, `delta_kls = 0.0`                                            |
 | 6   | `200`    | `-8.0` | `"NNN"` | `right_weights = [1.0, 0.4, 1.6, 1.0]`, `left_weights = [1.0, 1.6, 0.4, 1.0]` |
-| 7   | `200`    | `-5.0` | `"KLS"` | `epsilon = 0.6`, `delta_kls = 0.0`                                            |                    
+| 7   | `200`    | `-5.0` | `"KLS"` | `epsilon = 0.6`, `delta_kls = 0.0`                                            | 
 | 8   | `200`    | `-5.0` | `"NNN"` | `right_weights = [1.0, 0.4, 1.6, 1.0]`, `left_weights = [1.0, 1.6, 0.4, 1.0]` |
 
-with every other parameter taken from `[fixed]`. The two models could not have been written as a sweep: `epsilon` belongs only to `KLS` and the weight vectors only to `NNN`, and pairing either with the wrong model is rejected.
+with every other parameter taken from `[fixed]`. The two models could not have been written as a sweep: `epsilon` belongs only to `KLS` and the weight vectors only to `NNN`, and pairing either with the wrong model leaves it ignored.
 
 Both `[sweep]` and `[[cases]]` are optional. If both are absent and a plan consists of `[fixed]` alone, only one simulation is launched.
 
@@ -127,7 +127,7 @@ Leaving a parameter out of the plan entirely is not an error: it takes the runne
     Domain of the parameters: `|epsilon| < 1` and `|delta_kls| < 1`.
     -`WASEP`: No extra parameter is received as input. The model rates are uniform and equal to 1.0 .
 
-    Providing the wrong parameters to the wrong model (or forgetting the necessary input) raises an error.
+    Each model reads only its own rate parameters and ignores the others. Forgetting the necessary input still raises an error: `NNN` requires both weight vectors.
     Note that all these are bare interaction rates: they do not include the external or counting field in them. The engine then applies `exp((E+s)/L)` to right hops and `exp(-(E+s)/L)` to left hops.
     See README.md or theory_algorithm_implementation.tex for more details.
 

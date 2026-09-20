@@ -96,6 +96,14 @@ inline constexpr int classes = 4;
 
 enum class DynamicsKind {Heap, Uniformized, Direct};
 
+// Every field below is overwritten by parse_parameters(), which reads all of
+// them from the dictionary the Python wrapper builds and raises KeyError on a
+// missing one, so none of these initializers is ever observed through the
+// normal entry point.  They are kept so that a field added to the struct and
+// forgotten in parse_parameters() degrades to a defined value instead of an
+// indeterminate one, and they mirror the resolved defaults of the NNN
+// constructor in Python_Cpp_Interface/NNN_class.py, which is the single source
+// of truth for what an unspecified parameter means.
 struct Parameters {
     std::size_t L = 20;
     std::size_t M = 100;
@@ -106,14 +114,14 @@ struct Parameters {
 
     std::string model = "KLS";
  
-    double epsilon = 0.0;
+    // The KLS interaction, matching the constructor's KLS defaults -- which
+    // apply only to a KLS run, the model this struct also defaults to.  A
+    // WASEP or NNN run zeroes both before they reach here.
+    double epsilon = 0.6;
     double delta_kls = 0.0;
-    // Explicit class weights, four per direction indexed as 2*a + d.  Leaving
-    // either empty falls back to the Katz-Lebowitz-Spohn weights above, but
-    // that fallback is unreachable through the normal entry points: the Python
-    // wrapper requires both vectors whenever model = "NNN", and refuses them
-    // for the other two models.  See LAUNCHER.md for the accepted
-    // combinations.
+    // Explicit class weights, four per direction indexed as 2*a + d.  Read
+    // only when model = "NNN", which requires both; the other two families
+    // ignore whatever is here.
     std::vector<double> right_weights;
     std::vector<double> left_weights;
     double filling = 0.5;
@@ -121,7 +129,9 @@ struct Parameters {
     double gamma = 1.0;
     double delta = 1.0;
     double beta = 1.0;
-    double target_min = 4.0;
+    // Supplying only target_max implies target_min as its two-thirds power,
+    // so the pair below is 10 and 10^(2/3).
+    double target_min = 4.641588833612778;
     double target_max = 10.0;
     // Infinity means "no clock-based check"; a finite value adds one on top
     // of whatever the mechanism schedules for itself.
@@ -131,7 +141,7 @@ struct Parameters {
     std::string initial = "alternating";
     std::string boundary = "open";
     std::size_t progress = 0;
-    DynamicsKind dynamics = DynamicsKind::Heap;
+    DynamicsKind dynamics = DynamicsKind::Direct;
 
     bool rejection_free() const { return dynamics != DynamicsKind::Uniformized; }
 };
@@ -139,7 +149,10 @@ struct Parameters {
 class Model {
 public:
     explicit Model(const Parameters& p): L(p.L), periodic(p.boundary == "periodic"), links(periodic ? p.L : p.L - 1), E(p.E), s(p.s), k(p.k), k_scaled(p.k / (static_cast<double>(p.L) * static_cast<double>(p.L))), alpha(p.alpha), gamma(p.gamma), delta(p.delta), beta(p.beta),dq(1.0 / static_cast<double>(links)),p0(std::exp(E / static_cast<double>(links))),q0(std::exp(-E / static_cast<double>(links))),ps(std::exp((E + s) / static_cast<double>(links))),qs(std::exp(-(E + s) / static_cast<double>(links))) {
-        const bool explicit_weights = (p.right_weights.size() == static_cast<std::size_t>(classes)) && (p.left_weights.size() == static_cast<std::size_t>(classes));
+        // The model alone decides which rate description is read: NNN takes
+        // the weight vectors, KLS builds its own from epsilon and delta_kls,
+        // WASEP uses neither.  Whatever a family does not read is ignored.
+        const bool use_weights = (p.model == "NNN");
         uniform = (p.model == "WASEP");
         if (uniform) {
             for (int c = 0; c < classes; ++c)
@@ -148,14 +161,14 @@ public:
             heaviest_weight = 1.0;
             return;
         }
-        if (p.model == "NNN" && !explicit_weights)
-            throw std::invalid_argument( "model NNN needs four right_weights and four left_weights");
-        if (p.model != "KLS" && p.model != "NNN")
+        if (!use_weights && p.model != "KLS")
             throw std::invalid_argument("model must be WASEP, KLS or NNN");
+        if (use_weights && (p.right_weights.size() != static_cast<std::size_t>(classes) || p.left_weights.size() != static_cast<std::size_t>(classes)))
+            throw std::invalid_argument( "model NNN needs four right_weights and four left_weights");
         for (int a = 0; a < 2; ++a) {
             for (int d = 0; d < 2; ++d) {
                 const int cls = 2 * a + d;
-                if (explicit_weights) {
+                if (use_weights) {
                     right_weight[cls] = p.right_weights[cls];
                     left_weight[cls] = p.left_weights[cls];
                     continue;
@@ -166,8 +179,8 @@ public:
                 left_weight[cls] = 1.0 + p.delta_kls * (1.0 - sum) - p.epsilon * difference;
             }
         }
-        custom_weights = explicit_weights;
-        rate_model = explicit_weights ? "custom" : "kls";
+        custom_weights = use_weights;
+        rate_model = use_weights ? "custom" : "kls";
         heaviest_weight = 0.0;
         for (int c = 0; c < classes; ++c)
             heaviest_weight = std::max({heaviest_weight, right_weight[c],left_weight[c]});

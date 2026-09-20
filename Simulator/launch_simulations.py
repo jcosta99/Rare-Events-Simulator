@@ -41,7 +41,6 @@ OPTION_FLAGS = {
 }
 VECTOR_OPTIONS = {'right_weights', 'left_weights'}
 BOOLEAN_OPTIONS = {'overwrite'}
-RATE_OPTIONS = {'epsilon', 'delta_kls', 'right_weights', 'left_weights'}
 MODELS = {'WASEP', 'KLS', 'NNN'}
 # The launcher and the runner it starts live in Simulator/; the plan, the data
 # folder and everything else a run is described by live one level up, in the
@@ -55,6 +54,10 @@ RUNNER_DEFAULTS = {
     'field': 0.0,
     'bias': 0.0,
     'measurement_strength': 0.0,
+    # The values a KLS run resolves an unset interaction to, not the runner's
+    # command-line defaults, which are unset.  output_identity() reads them
+    # only under model == 'KLS', where a job omitting epsilon and one passing
+    # 0.6 must collide rather than look like two different runs.
     'epsilon': 0.6,
     'delta_kls': 0.0,
     'right_weights': None,
@@ -151,14 +154,10 @@ def validate_job(job):
         allowed = ', '.join(sorted(MODELS))
         raise ValueError(f'NNN plans support model = {allowed}; got {model}')
 
-    present_rates = RATE_OPTIONS & set(job)
-    if model == 'WASEP' and present_rates:
-        raise ValueError('WASEP jobs must not specify KLS/NNN rate parameters')
-    if model == 'KLS' and present_rates & VECTOR_OPTIONS:
-        raise ValueError('KLS jobs use epsilon/delta_kls, not explicit weights')
+    # A job may carry the rate parameters of any family; each model reads its
+    # own and ignores the rest.  NNN is the one that has nothing to fall back
+    # on, so its two vectors are still required, and still have to be rates.
     if model == 'NNN':
-        if present_rates & {'epsilon', 'delta_kls'}:
-            raise ValueError('NNN jobs use explicit weights, not epsilon/delta_kls')
         if not VECTOR_OPTIONS <= set(job):
             raise ValueError('NNN jobs require right_weights and left_weights')
         for name in VECTOR_OPTIONS:

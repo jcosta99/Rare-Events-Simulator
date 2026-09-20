@@ -41,49 +41,40 @@ class NNN:
             raise ValueError('filling must lie between 0 and 1')
         if min(k, alpha, gamma, delta, beta) < 0:
             raise ValueError('k and boundary rates must be non-negative')
-        # Explicit weights, when given, replace the KLS formula entirely,
-        # so the epsilon/delta bounds do not apply to them.
-        explicit = right_weights is not None or left_weights is not None
         # The model names the rate family and, with it, the bookkeeping the
-        # engine uses.  Leaving it unset keeps the older behaviour of reading
-        # the family off the rates themselves; 'WASEP' has to be asked for,
-        # because it is a different code path and not just epsilon = 0.
+        # engine uses.  Leaving it unset reads the family off the rates
+        # themselves; 'WASEP' has to be asked for, because it is a different
+        # code path and not just epsilon = 0.
         if model is None:
-            model = 'NNN' if explicit else 'KLS'
+            model = 'NNN' if (right_weights is not None
+                              or left_weights is not None) else 'KLS'
         model = str(model).upper()
         if model not in {'WASEP', 'KLS', 'NNN'}:
             raise ValueError("model must be 'WASEP', 'KLS' or 'NNN'")
-        # Unset interaction parameters mean the historical KLS defaults, but
-        # only for a KLS run: a WASEP or NNN run must not silently acquire an
-        # interaction it does not use.
+        # Each family reads only its own rate description and drops the rest
+        # here, so nothing downstream has to ask which values are in force:
+        # KLS builds its weights from epsilon and delta_kls, NNN takes the two
+        # weight vectors as given, and WASEP uses neither.
         if model == 'KLS':
-            if epsilon is None:
-                epsilon = 0.6
-            if delta_kls is None:
-                delta_kls = 0.0
-        if model == 'WASEP':
-            if explicit:
-                raise ValueError('a WASEP run has one rate per direction; '
-                                 'do not pass right_weights or left_weights')
-            if epsilon or delta_kls:
-                raise ValueError('a WASEP run has no interaction; use '
-                                 "model='KLS' for epsilon or delta_kls")
-            # The eight class weights are all one, so nothing else is needed.
-            epsilon = delta_kls = 0.0
+            epsilon = 0.6 if epsilon is None else epsilon
+            delta_kls = 0.0 if delta_kls is None else delta_kls
+            # The four KLS weights are 1 + delta, 1 - epsilon, 1 + epsilon and
+            # 1 - delta: a nonzero (a - d) forces a + d = 1, which kills the
+            # delta term, so the two never appear in the same weight.  Each
+            # therefore only has to stay within (-1, 1) on its own; requiring
+            # |epsilon| + |delta| < 1 as well would reject valid models such as
+            # epsilon = delta = 0.6, whose rates are 1.6, 0.4, 1.6, 0.4.
+            if not -1.0 < epsilon < 1.0 or not -1.0 < delta_kls < 1.0:
+                raise ValueError('epsilon and delta_kls must lie strictly '
+                                 'between -1 and 1 so that every hop rate is '
+                                 'positive')
+            right_weights = left_weights = None
         elif model == 'NNN':
-            if not explicit:
+            # The one thing no family can fall back on: without both vectors
+            # there are no rates to run.
+            if right_weights is None or left_weights is None:
                 raise ValueError(
                     "model='NNN' needs right_weights and left_weights")
-            if epsilon or delta_kls:
-                raise ValueError('explicit weights replace the KLS form; '
-                                 'do not pass epsilon or delta_kls with them')
-            epsilon = delta_kls = 0.0
-        elif explicit:
-            raise ValueError("model='KLS' is set by epsilon and delta_kls; "
-                             "pass model='NNN' to give weights directly")
-        if explicit:
-            if right_weights is None or left_weights is None:
-                raise ValueError('give right_weights and left_weights together')
             right_weights = [float(w) for w in right_weights]
             left_weights = [float(w) for w in left_weights]
             if len(right_weights) != 4 or len(left_weights) != 4:
@@ -91,18 +82,11 @@ class NNN:
                                  'rates each, ordered (0,0) (0,1) (1,0) (1,1)')
             if min(right_weights + left_weights) <= 0:
                 raise ValueError('every hop rate must be positive')
-        # The four KLS weights are 1 + delta, 1 - epsilon, 1 + epsilon and
-        # 1 - delta: a nonzero (a - d) forces a + d = 1, which kills the delta
-        # term, so the two parameters never appear in the same weight.  Each
-        # therefore only has to stay within (-1, 1) on its own; requiring
-        # |epsilon| + |delta| < 1 as well would reject valid models such as
-        # epsilon = delta = 0.6, whose rates are 1.6, 0.4, 1.6, 0.4.
-        elif not -1.0 < epsilon < 1.0:
-            raise ValueError('epsilon must lie strictly between -1 and 1 '
-                             'so that every hop rate is positive')
-        elif not -1.0 < delta_kls < 1.0:
-            raise ValueError('delta_kls must lie strictly between -1 and 1 '
-                             'so that every hop rate is positive')
+            epsilon = delta_kls = 0.0
+        else:
+            # The eight class weights are all one, so nothing else is needed.
+            epsilon = delta_kls = 0.0
+            right_weights = left_weights = None
         # Two weight-ratio targets: resample once the population's weights
         # differ by target_min, never let them differ by more than target_max.
         # Supplying only target_max implies target_min as its two-thirds power.

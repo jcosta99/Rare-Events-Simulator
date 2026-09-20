@@ -1,30 +1,40 @@
 # Values shared by every expanded simulation.
 [fixed]
-model = "WASEP"             # "WASEP", "KLS", or explicit-rate "NNN".
-length = 100                # Number of lattice sites, L.
-walkers = 2000              # Number of population-dynamics walkers, M.
+model = "NNN"               # "WASEP", "KLS", or explicit-rate "NNN".
 time = 80000.0              # Final simulation time.
 record_interval = 50.0      # Simulation time between recorded output rows.
-target_min = 5.0           # Resample once the walker weights differ by this factor.
+target_min = 5.0            # Resample once the walker weights differ by this factor.
 target_max = 10.0           # Never let them differ by more than this factor.
-progress = 10                # Print progress after every two recorded rows.
+progress = 10               # Print progress after every two recorded rows.
 dynamics = "direct"         # "direct" evolves one walker at a time between fixed cloning instants and is the fastest; "heap" keeps every walker on one clock and clones the moment a running certificate trips; "uniformized" blindly samples one walker to jump and rejects the blocked attempts, which is slower and kept for validation.
+bias=0.0		    # Current-counting field, s.
+field=0.0		    # External driving field, E.
+measurement_strength=0.0    # Monitoring/counting coupling, k.
+boundary = "open"           # "open" chain or "periodic" ring.
+#filling = 0.3               # Particle density on a periodic ring; ignored when open.
+alpha = 1.9                 # Left-reservoir particle injection rate.
+gamma = 0.1                 # Left-reservoir particle removal rate.
+delta = 0.1                 # Right-reservoir particle injection rate.
+beta = 1.9                  # Right-reservoir particle removal rate.
+seed = 12345                # Random-number-generator seed.
 
 # Every Cartesian combination of these arrays is run.
 [sweep]
-field = [10.0]                # External driving field, E.
-bias = [-10.0,-9.5,-9.0,-8.5,-8.0,-7.5,-7.0,-6.5]  # Current-counting field, s.
-measurement_strength = [0.0] # Monitoring/counting coupling, k.
+length = [50,75,100,150]                # Number of lattice sites, L.
+walkers = [1000, 2000, 4000]              # Number of population-dynamics walkers, M.
 
 # Each table is one correlated parameter case, combined with the full sweep. 
 [[cases]]
-boundary = "periodic"           # "open" chain or "periodic" ring.
-filling = 0.3               # Particle density on a periodic ring; ignored when open.
-alpha = 1.0                 # Left-reservoir particle injection rate.
-gamma = 1.0                 # Left-reservoir particle removal rate.
-delta = 1.0                 # Right-reservoir particle injection rate.
-beta = 1.0                  # Right-reservoir particle removal rate.
-seed = 12345                # Random-number-generator seed.
+right_weights = [1.0, 0.75, 0.75, 1.0]
+left_weights = [1.0, 0.75, 0.75, 1.0]
+
+[[cases]]
+right_weights = [1.0, 0.5, 0.5, 1.0]
+left_weights = [1.0, 0.5, 0.5, 1.0]
+
+[[cases]]
+right_weights = [1.0, 0.25, 0.25, 1.0]
+left_weights = [1.0, 0.25, 0.25, 1.0]
 
 #To add other cases you can uncomment the lines below and repeat them with your parameters choice
 
@@ -36,5 +46,5 @@ seed = 12345                # Random-number-generator seed.
 #beta = 1.0
 #seed = 12345
 
-#E=5 for open particle-hole symmetric
+
 
