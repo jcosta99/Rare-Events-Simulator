@@ -1,7 +1,8 @@
 # How a run flows
 
 Four views of the same computation, from the outside in. The diagrams render
-directly on GitHub.
+directly on GitHub, so the labels are kept short and anything that needs a
+sentence is written as one underneath.
 
 Two companion documents pick up where this one stops:
 [`OUTPUT_CONVENTIONS.md`](OUTPUT_CONVENTIONS.md) for what a run writes, how the
@@ -21,47 +22,43 @@ dominates the cost of an event.
 - **Resampling** — replacing the weighted population by `M` equally weighted
   descendants, preserving the influence of the old weights in the normalization.
 - **Certificate** — a running upper bound on how far the log-weights can have
-  spread. It can only be watched by a mechanism that keeps one global clock.
+  spread. Only a mechanism that keeps one global clock can watch it.
 
 ## 1. From a plan to a figure
 
 ```mermaid
 flowchart LR
-    toml["simulations.toml<br/>fixed / sweep / cases"] --> launcher["launch_simulations.py<br/>expands the plan"]
-    launcher -->|"one process per CPU"| cli["run_NNN_cpp.py<br/>--model, --dynamics, ..."]
-    cli --> wrapper["Python_Cpp_Interface/NNN_class.py<br/>validation, naming, caching"]
-    wrapper --> engine["cpp/engine.cpp<br/>the simulation"]
-    engine --> store[("data/<br/>CSV rows + JSON metadata<br/>with restart checkpoint")]
+    toml["simulations.toml<br/>the plan"] --> launcher["launch_simulations.py<br/>expands it"]
+    launcher -->|"one process per CPU"| cli["run_NNN_cpp.py<br/>one run"]
+    cli --> wrapper["NNN_class.py<br/>validate, name, cache"]
+    wrapper --> engine["engine.cpp<br/>the simulation"]
+    engine --> store[("data/<br/>CSV rows<br/>JSON metadata")]
     store --> nb["notebooks/<br/>CGF, profiles, ESS"]
-    theory["theory/<br/>additivity prediction"] --> nb
 ```
 
-Before starting the engine, the wrapper looks in `data/` for a result whose
-parameters match: an equal one is returned as it stands, and a shorter one is
-resumed from its checkpoint so that only the missing time is simulated. The
-rules that decide what counts as a match are in
-[`OUTPUT_CONVENTIONS.md`](OUTPUT_CONVENTIONS.md).
+The wrapper is
+[`Simulator/Python_Cpp_Interface/NNN_class.py`](../Python_Cpp_Interface/NNN_class.py)
+and the engine [`Simulator/cpp/engine.cpp`](../cpp/engine.cpp). Before starting
+the engine, the wrapper looks in `data/` for a result whose parameters match: an
+equal one is returned as it stands, and a shorter one is resumed from its
+checkpoint so that only the missing time is simulated. What counts as a match is
+set out in [`OUTPUT_CONVENTIONS.md`](OUTPUT_CONVENTIONS.md).
 
 ## 2. The run loop, in all three mechanisms at once
 
-One iteration per block. All three mechanisms plan the same stops and, once
-the block is over, record and resample identically; they differ only in how the
-population is carried to the stop, and in how that block is then judged.
-
-`heap` and `uniformized` keep one global clock, so the certificate can be
-watched continuously and a block is cut the instant the bound is reached.
-`direct` advances each walker separately, so there is no global clock and no
-running certificate: it predicts `tau` instead, and judges the block afterwards.
+One iteration per block. All three mechanisms plan the same stops and, once the
+block is over, record and resample identically. They differ only in how the
+population is carried to the stop, and in how the block is then judged.
 
 ```mermaid
 flowchart TD
-    start([run]) --> init["write the initial row"]
-    init --> plan["plan the stop:<br/>the earliest of the next cloning check,<br/>the next recording, and tmax"]
+    start([run]) --> init["write the first row"]
+    init --> plan["plan the stop"]
 
-    subgraph advance["advance the population to that stop"]
-        heap["heap<br/>pop the earliest pending event,<br/>execute it, redraw, sift"]
-        uni["uniformized<br/>one clock at the heaviest rate;<br/>propose a jump, accept or reject"]
-        dir["direct<br/>the reference first, then each<br/>walker alone, replaying it"]
+    subgraph advance["advance to that stop"]
+        heap["heap<br/>pop the earliest event,<br/>execute, redraw, sift"]
+        uni["uniformized<br/>propose at the top rate,<br/>accept or reject"]
+        dir["direct<br/>the reference, then each<br/>walker replaying it"]
     end
 
     plan --> heap
@@ -71,20 +68,20 @@ flowchart TD
     heap --> cert
     uni --> cert
     cert{"certificate<br/>tripped?"}
-    cert -->|yes| early["examine the weights,<br/>reschedule the stop"]
+    cert -->|yes| early["examine the weights"]
     early --> plan
     cert -->|no| kind
 
     dir --> rev{"overshot<br/>target_max?"}
-    rev -->|yes| back["restore the snapshot,<br/>halve tau, replay the block"]
+    rev -->|yes| back["restore, halve tau,<br/>replay"]
     back --> plan
-    rev -->|no| grow["keep the block, and predict the<br/>next tau from the range it opened,<br/>at most twice this one"]
+    rev -->|no| grow["keep it, predict<br/>the next tau"]
     grow --> kind
 
     kind{"which stop?"}
-    kind -->|recording| force["resample, unless the run is<br/>untilted at s = k = 0"]
+    kind -->|recording| force["resample"]
     force --> row["write a row"]
-    kind -->|cloning check| maybe["examine the weights;<br/>resample if the range<br/>passed target_min"]
+    kind -->|cloning check| maybe["examine the weights"]
 
     row --> fin{"tmax reached?"}
     maybe --> fin
@@ -92,11 +89,21 @@ flowchart TD
     fin -->|yes| out([return the rows])
 ```
 
-Reaching the certificate is not by itself a reason to resample: it is an upper
-bound, so the weights are examined and the exact range may turn out to be
-within `target_min` after all. Shrinking `tau` is immediate and growing it is
-capped at a factor of two, so one lucky block cannot stretch the next one out
-of range.
+The stop is the earliest of the next cloning check, the next recording, and
+`tmax`. `heap` and `uniformized` keep one global clock, so the certificate can
+be watched continuously and the block is cut the instant the bound is reached;
+`direct` advances each walker separately, so it has no running certificate and
+predicts `tau` instead, judging the block only once it is over.
+
+Examining the weights is not the same as resampling. The certificate is an
+upper bound, so the exact range may still be within `target_min`, in which case
+nothing is resampled. A recording is the one stop that resamples on its own
+account — unless the run is untilted at `s = k = 0`, where every weight stays
+exactly one and resampling would only copy the population.
+
+`tau` shrinks fast and grows slowly: a block that overshoots `target_max` is
+discarded and replayed at half the step, while a block that holds may at most
+double it, so one lucky block cannot stretch the next one out of range.
 
 ## 3. One accepted event
 
@@ -104,23 +111,29 @@ The path every walker event takes, in the rejection-free mechanisms.
 
 ```mermaid
 flowchart TD
-    draw["draw a uniform<br/>over the walker's total rate"] --> dir{"which part<br/>of the rate?"}
-    dir -->|"right hops"| cls["walk the four class blocks<br/>to find the class"]
+    draw["draw a uniform over<br/>the walker's total rate"] --> dir{"which part<br/>of the rate?"}
+    dir -->|"right hops"| cls["find the class"]
     dir -->|"left hops"| cls
     dir -->|"reservoir"| bnd["inject or remove<br/>at an end site"]
-    cls --> ordinal["the remainder over the class rate<br/>is a uniform index among<br/>that class's allowed bonds"]
-    ordinal --> pick["select_set_bit:<br/>position of the n-th set bit<br/>(PDEP, or the portable walk)"]
+    cls --> ordinal["the remainder indexes<br/>that class's allowed bonds"]
+    ordinal --> pick["select_set_bit:<br/>pick that bond"]
     pick --> apply
     bnd --> apply
     apply["apply_walker_event:<br/>close the weight integral,<br/>flip the sites, add the current"]
-    apply --> masks["update the masks:<br/>five bonds for KLS and NNN,<br/>a word-parallel rebuild for WASEP"]
-    masks --> rate["recompute the walker's<br/>activity and potential"]
-    rate --> wait["draw the next waiting time<br/>from the new rate"]
+    apply --> masks["update the masks"]
+    masks --> rate["recompute the activity<br/>and the potential"]
+    rate --> wait["draw the next<br/>waiting time"]
 ```
 
-Which of the two routes `select_set_bit` takes is decided once, when the
-extension module loads, and why is the subject of
-[`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md).
+A class's allowed bonds are held as set bits in a mask word, so choosing the
+`n`-th of them is what selects the bond. `select_set_bit` does that either with
+a single `PDEP` instruction or with a portable walk over the bits; which route
+is taken is decided once, when the extension module loads, and why is the
+subject of [`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md).
+
+Updating the masks is local for `KLS` and `NNN` — a hop can only change the five
+bonds around it — whereas `WASEP` rebuilds them for the whole lattice a word at
+a time.
 
 ## 4. Why three mechanisms
 
