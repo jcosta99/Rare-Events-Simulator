@@ -97,7 +97,7 @@ Both `[sweep]` and `[[cases]]` are optional. If both are absent and a plan consi
 
 Two jobs that would write the same file are rejected before any process starts, and the message names both job numbers. Only the parameters that appear in the output filename are compared, so two jobs differing solely in `cloning_interval`, `record_interval`, `target_min` or `target_max` count as the same file and are rejected; separate them with the seed, or with any other parameter that shows up in the name. 
 
-Leaving a parameter out of the plan entirely is not an error: it takes the runner default. `--dry-run` prints, under each command, every parameter that reaches the result filename with its default filled in — which is also exactly the set the launcher compares when it checks two jobs for a name collision. The few that do not reach the filename are resolved by the engine itself and recorded in the run's JSON `diagnostics`.
+Leaving a parameter out of the plan entirely is not an error: it takes the runner default, which `--dry-run` will show you.
 
 ## Common parameters
 

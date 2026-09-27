@@ -22,7 +22,7 @@ class NNN:
     """
 
     def __init__(self, L=20, M=100, tmax=20.0, E=0.0, s=0.0, k=0.0,
-                 model=None, epsilon=None, delta_kls=None,
+                 model=None, epsilon=0.6, delta_kls=0.0,
                  right_weights=None, left_weights=None,
                  filling=0.5,
                  alpha=1.0, gamma=1.0, delta=1.0, beta=1.0,
@@ -54,10 +54,11 @@ class NNN:
         # Each family reads only its own rate description and drops the rest
         # here, so nothing downstream has to ask which values are in force:
         # KLS builds its weights from epsilon and delta_kls, NNN takes the two
-        # weight vectors as given, and WASEP uses neither.
+        # weight vectors as given, and WASEP uses neither.  Because the other
+        # two zero the interaction whatever arrives, epsilon and delta_kls can
+        # carry their KLS defaults in the signature rather than arriving unset:
+        # no branch has to tell "not given" from "given as 0.6".
         if model == 'KLS':
-            epsilon = 0.6 if epsilon is None else epsilon
-            delta_kls = 0.0 if delta_kls is None else delta_kls
             # The four KLS weights are 1 + delta, 1 - epsilon, 1 + epsilon and
             # 1 - delta: a nonzero (a - d) forces a + d = 1, which kills the
             # delta term, so the two never appear in the same weight.  Each

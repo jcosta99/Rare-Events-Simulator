@@ -32,16 +32,13 @@ def parse_args():
               'rates from --epsilon and --delta-kls, NNN takes them as given '
               'weights; omitted, it is KLS at its defaults'),
     )
-    # No default here: argparse would apply one whether or not the flag was
-    # given, so an unset interaction would be indistinguishable from 0.6.  The
-    # constructor resolves None per model.
     parser.add_argument(
-        '--epsilon', type=float,
+        '--epsilon', type=float, default=0.6,
         help=('KLS next-nearest-neighbour coupling, used by --model KLS and '
               'ignored by the others; unset it is 0.6'),
     )
     parser.add_argument(
-        '--delta-kls', type=float,
+        '--delta-kls', type=float, default=0.0,
         help=('KLS asymmetry parameter, used by --model KLS and ignored by '
               'the others; unset it is 0, which keeps particle-hole symmetry'),
     )
