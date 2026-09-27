@@ -58,11 +58,6 @@ data/*
 # leaves behind is not.
 !Simulator/docs/theory_algorithm_implementation.pdf
 
-# The test suite and the analytic solver are kept out of what this
-# repository publishes.
-Simulator/tests/
-theory/
-
 # Working notes kept for the assistant's own use: parameter targets and
 # convergence measurements that are not part of what this repository publishes.
 Simulator/docs/AP_CONVERGENCE_OPEN_WASEP.md
