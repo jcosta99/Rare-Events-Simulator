@@ -121,17 +121,17 @@ Leaving a parameter out of the plan entirely is not an error: it takes the runne
 | `overwrite`                             | Default `false`. Replaces a file whose *name* collides but whose parameters differ; see Output. |
 | `output`                                | Optional explicit CSV path; normally omit it.                                                   |
 
-*   Three possible scenarios:
-    -`"NNN"`: Receives as input two vectors with 4 entries: `right_weights` and `left_weights`. For a bond `(b,b+1)`, NNN rates are indexed by the flanking occupations `(n[b-1], n[b+2])` in the order `(0,0), (0,1), (1,0), (1,1)`. 
-    -`"KLS"`: Receives two parameters as input, `epsilon` and `delta_kls`, which completely specify the model's rates (this is done internally).
-    Domain of the parameters: `|epsilon| < 1` and `|delta_kls| < 1`.
-    -`WASEP`: No extra parameter is received as input. The model rates are uniform and equal to 1.0 .
+*Three possible scenarios:
+-`"NNN"`: Receives as input two vectors with 4 entries: `right_weights` and `left_weights`. For a bond `(b,b+1)`, NNN rates are indexed by the flanking occupations `(n[b-1], n[b+2])` in the order `(0,0), (0,1), (1,0), (1,1)`. 
+-`"KLS"`: Receives two parameters as input, `epsilon` and `delta_kls`, which completely specify the model's rates (this is done internally).
+Domain of the parameters: `|epsilon| < 1` and `|delta_kls| < 1`.
+-`WASEP`: No extra parameter is received as input. The model rates are uniform and equal to 1.0 .
 
-    Each model reads only its own rate parameters and ignores the others. Forgetting the necessary input still raises an error: `NNN` requires both weight vectors.
-    Note that all these are bare interaction rates: they do not include the external or counting field in them. The engine then applies `exp((E+s)/L)` to right hops and `exp(-(E+s)/L)` to left hops.
-    See [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf) for more details.
+Each model reads only its own rate parameters and ignores the others. Forgetting the necessary input still raises an error in the `NNN` case: `NNN` requires both weight vectors. `KLS` defaults to `epsilon = 0.6` and `delta_kls=0`.
+Note that all these are bare interaction rates: they do not include the external or counting field in them. The engine then applies `exp((E+s)/L)` to right hops and `exp(-(E+s)/L)` to left hops.
+See [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf) for more details.
 
-    **Default**: `KLS` with `epsilon = 0.6` and `delta_kls=0`.
+**Default Model**: `KLS` with `epsilon = 0.6` and `delta_kls=0`.
 
 **  `Heap` and `uniformized` examine the population as soon as their running bound reaches `target_max`; `direct` replays any block that
     overshot `target_max` with a halved step.

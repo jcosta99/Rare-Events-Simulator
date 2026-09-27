@@ -30,7 +30,7 @@ def parse_args():
         help=('rate family: WASEP keeps one rate per direction and uses the '
               'cheaper single-mask bookkeeping, KLS builds the eight class '
               'rates from --epsilon and --delta-kls, NNN takes them as given '
-              'weights; omitted, it is read off the rates'),
+              'weights; omitted, it is KLS at its defaults'),
     )
     # No default here: argparse would apply one whether or not the flag was
     # given, so an unset interaction would be indistinguishable from 0.6.  The

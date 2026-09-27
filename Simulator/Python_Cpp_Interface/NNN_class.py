@@ -42,12 +42,12 @@ class NNN:
         if min(k, alpha, gamma, delta, beta) < 0:
             raise ValueError('k and boundary rates must be non-negative')
         # The model names the rate family and, with it, the bookkeeping the
-        # engine uses.  Leaving it unset reads the family off the rates
-        # themselves; 'WASEP' has to be asked for, because it is a different
-        # code path and not just epsilon = 0.
+        # engine uses.  Leaving it unset means KLS at its own defaults,
+        # whatever else is passed, which is what the launcher assumes when a
+        # plan omits the key; inferring the family from the rates instead
+        # would make the two entry points disagree.
         if model is None:
-            model = 'NNN' if (right_weights is not None
-                              or left_weights is not None) else 'KLS'
+            model = 'KLS'
         model = str(model).upper()
         if model not in {'WASEP', 'KLS', 'NNN'}:
             raise ValueError("model must be 'WASEP', 'KLS' or 'NNN'")
