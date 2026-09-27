@@ -18,7 +18,7 @@ class NNN:
     """Run the rejection-free C++ implementation through a Python interface.
 
     The output-row schema is documented in ``docs/OUTPUT_CONVENTIONS.md``, the
-    physical parameters in ``theory_algorithm_implementation.tex``.
+    physical parameters in ``docs/theory_algorithm_implementation.tex``.
     """
 
     def __init__(self, L=20, M=100, tmax=20.0, E=0.0, s=0.0, k=0.0,

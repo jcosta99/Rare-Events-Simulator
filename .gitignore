@@ -56,7 +56,7 @@ data/*
 # The typeset notes are a deliverable of this repository: the PDF is committed
 # so it can be read without a TeX installation, while everything else latexmk
 # leaves behind is not.
-!theory_algorithm_implementation.pdf
+!Simulator/docs/theory_algorithm_implementation.pdf
 
 # The test suite and the analytic solver are kept out of what this
 # repository publishes.
@@ -108,3 +108,6 @@ Simulator/docs/KLS_FIRST_ORDER_TARGETS.md
 *.makefile
 *.pytxcode
 _minted-*/
+
+# A working notebook kept out of what this repository publishes.
+notebooks/NNN_diffusivity_from_density_profile.ipynb

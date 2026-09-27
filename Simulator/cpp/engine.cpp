@@ -207,7 +207,7 @@ public:
     std::size_t links;
     double E, s, k;
     // The measurement coupling enters every weight as k/L^2; see the
-    // monitoring section of theory_algorithm_implementation.tex.  The raw k
+    // monitoring section of docs/theory_algorithm_implementation.tex.  The raw k
     // is kept for the metadata and the k == 0 tests.
     double k_scaled;
     double alpha, gamma, delta, beta;

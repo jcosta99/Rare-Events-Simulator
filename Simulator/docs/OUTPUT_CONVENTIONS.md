@@ -19,7 +19,7 @@ What the engine writes and how to read it: the meaning of each CSV column, and t
 
 * `RejectedWalkerEvents` are only non-zero for `uniformized` dynamics, where impossible configuration jumps are included deliberately.
 
-All equations in this table refer to equations in `theory_algorithm_implementation.tex`.
+All equations in this table refer to equations in `theory_algorithm_implementation.pdf`.
 
 ## Reading a result
 

@@ -129,7 +129,7 @@ Leaving a parameter out of the plan entirely is not an error: it takes the runne
 
     Each model reads only its own rate parameters and ignores the others. Forgetting the necessary input still raises an error: `NNN` requires both weight vectors.
     Note that all these are bare interaction rates: they do not include the external or counting field in them. The engine then applies `exp((E+s)/L)` to right hops and `exp(-(E+s)/L)` to left hops.
-    See README.md or theory_algorithm_implementation.tex for more details.
+    See [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf) for more details.
 
     **Default**: `KLS` with `epsilon = 0.6` and `delta_KLS=0`.
 
@@ -138,12 +138,12 @@ Leaving a parameter out of the plan entirely is not an error: it takes the runne
 
 *** The initial condition flag is only used for open boundary conditions. It is ignored on a ring, where `filling` fixes the particle number.
 
-****See README.md or theory_algorithm_implementation.tex for more details about each implementation.
+****See [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf) for more details about each implementation.
 
 ## Output
 
 All simulations launched here write under the folder `data/` — sitting at the current folder, beside `simulations.toml` — so the NNN notebook can read them together. Large NNN populations carry eight transition mask families per walker; cap `--workers` if RAM, rather than CPU, is limiting.
 
-Result names carry the parameters that identify a run: the model family and the geometry (`O` open, `C` closed), the event mechanism, the rate description, then `length`, `walkers`, `time`, `field`, `bias`, `measurement_strength`, the boundary rates or the filling, the initial condition, and the seed. Several parameters that genuinely affect the result are deliberately left out of the name — `cloning_interval`, `record_interval`, `target_min`, `target_max`, and the engine version — so a job that differs from an existing file only in those will try to store a file with the same name. That collision is the one situation `overwrite` exists for: if true, the stored result is replaced, and its metadata then carries the new signature; if false, an error is raised and no data is saved. The name is only checked when the finished run goes to write, so a job rejected this way has already spent its full runtime. The full grammar is in [`Simulator/docs/OUTPUT_CONVENTIONS.md`](Simulator/docs/OUTPUT_CONVENTIONS.md).
+Result names carry the parameters that identify a run: the model family and the geometry (`O` open, `C` closed), the event mechanism, the rate description, then `length`, `walkers`, `time`, `field`, `bias`, `measurement_strength`, the boundary rates or the filling, the initial condition, and the seed. Several parameters that genuinely affect the result are deliberately left out of the name — `cloning_interval`, `record_interval`, `target_min`, `target_max`, and the engine version — so a job that differs from an existing file only in those will try to store a file with the same name. That collision is the one situation `overwrite` exists for: if true, the stored result is replaced, and its metadata then carries the new signature; if false, an error is raised and no data is saved. The name is only checked when the finished run goes to write, so a job rejected this way has already spent its full runtime. The full grammar is in [`Simulator/docs/OUTPUT_CONVENTIONS.md`](OUTPUT_CONVENTIONS.md).
 
 Note: the result names carry the event mechanism — `..._Heap_...`, `_Direct_`, `_Uniformized_` — because a stored run may only be extended by the mechanism that produced it: their restart states are not interchangeable. Two jobs that differ only in `dynamics` are therefore separate results, not a collision.
