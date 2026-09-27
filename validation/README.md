@@ -27,4 +27,4 @@ which writes `data/SSEP_TM_L<L>.csv` for the reservoir rates named in each file'
 
 ## Large-L benchmark
 
-[`figures/`](figures) contains a benchmark of the engine against the large-L closed form of the open SSEP cumulant generating function (Derrida; Bodineau and Derrida), which holds with no external field and equal reservoir densities, to leading order in `L`. The rescaled function `(L-1) lambda(s)` is plotted for `L = 8` to `128`, with `M = 2000` walkers and `t = 2e4`: on the left the whole curve collapses onto the limit as the lattice grows, and on the right a few counting fields approach it monotonically from below. The figure is discussed in the theory notes; the runs behind it are not yet part of a shipped simulation plan.
+[`figures/`](figures) contains a benchmark of the engine against the large-L closed form of the open SSEP cumulant generating function, which holds with no external field and equal reservoir densities, to leading order in `L` (see the theory notes [`theory_algorithm_implementation.pdf`](../Simulator/docs/theory_algorithm_implementation.pdf)). The runs behind it are not included in the repository.
