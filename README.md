@@ -125,3 +125,12 @@ The three event mechanisms are cross-checked against one another. The cumulant g
 | How are the numerical checks generated? | [`validation/README.md`](validation/README.md) |
 
 The bibliography for the theory notes is in [`algorithm_refs.bib`](Simulator/docs/algorithm_refs.bib).
+
+## Citation
+
+If this simulator supported published work, a citation is welcome:
+[`CITATION.cff`](CITATION.cff) carries the metadata, and GitHub renders it as a
+*Cite this repository* button with a BibTeX export. The physics and the
+population-dynamics algorithm are prior work and are cited in
+[`theory_algorithm_implementation.pdf`](Simulator/docs/theory_algorithm_implementation.pdf);
+what this repository adds is their implementation and its validation.
