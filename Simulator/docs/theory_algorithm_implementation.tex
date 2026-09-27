@@ -33,8 +33,8 @@
 \definecolor{flankcol}{RGB}{0,120,65}
 \definecolor{sigcol}{RGB}{0,140,90}
 
-% One colour per event mechanism, used in the text, the boxed procedure and
-% Figure~\ref{fig:algorithm}; black marks what all three share.
+% One colour per event mechanism, used in the text and the boxed
+% procedure; black marks what all three share.
 \definecolor{heapcol}{RGB}{0,90,170}
 \definecolor{unifcol}{RGB}{190,95,0}
 \definecolor{dircol}{RGB}{0,120,65}
@@ -717,91 +717,7 @@ Agreement between these two estimates provides an internal consistency check.
 \noindent\rule{\linewidth}{0.6pt}
 \medskip
 
-Figure~\ref{fig:algorithm} summarizes the algorithmic loop using the colour scheme introduced above. Black denotes the steps shared by all three implementations, while the coloured annotations distinguish the three event-generation mechanisms described in step 3.
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-    node distance = 6mm,
-    box/.style   = {rectangle, rounded corners=2pt, draw, align=center,
-                    text width=54mm, inner sep=4pt, font=\small},
-    dec/.style   = {diamond, aspect=2.8, draw, align=center,
-                    inner sep=0pt, font=\small, text width=38mm},
-    arr/.style   = {-{Stealth[length=2mm]}, thick},
-    lab/.style   = {font=\scriptsize, inner sep=1.5pt},
-]
-
-\node[box]                        (init)    {Initialise $M$ walkers and the reference\\
-$t = 0$, \; $\log Z_s = 0$};
-\node[box, below=of init]         (stop)    {Choose the next \textbf{stop}
-$^{\ddagger}$};
-\node[box, below=of stop]         (evolve)  {Evolve every walker to the stop
-$^{\dagger}$\\
-(Gillespie events)};
-\node[box, below=of evolve]       (weight)  {Accumulate
-$d\log \omega_i/dt=\Phi_{s,k}$};
-\node[dec,  below=of weight]      (examine) {range $\geq
-\log(\text{target}_{\min})$, or a recording?};
-\node[box, below=of examine]      (resamp)  {Resample in proportion to $\omega_i$\\
-$\log Z_s \mathrel{+}=
-\log \overline{\omega}$, then set
-$\omega_i= 1$};
-\node[dec,  below=of resamp]      (isrec)   {recording time?};
-\node[box, below=of isrec]        (row)     {Write a row};
-\node[dec,  below=of row]         (done)    {$t = t_{\max}$?};
-\node[box, below=of done]         (end)     {Stop};
-
-\draw[arr] (init)    -- (stop);
-\draw[arr] (stop)    -- (evolve);
-\draw[arr] (evolve)  -- (weight);
-\draw[arr] (weight)  -- (examine);
-\draw[arr] (examine) -- node[lab,right] {yes} (resamp);
-\draw[arr] (resamp)  -- (isrec);
-\draw[arr] (isrec)   -- node[lab,right] {yes} (row);
-\draw[arr] (row)     -- (done);
-\draw[arr] (done)    -- node[lab,right] {yes} (end);
-
-% "no" branches return to the choice of the next stop.
-\draw[arr] (examine.west) -- node[lab,above] {no} ++(-14mm,0)
-           |- ([yshift=-2.5mm]stop.west);
-\draw[arr] (done.west)    -- node[lab,above] {no} ++(-24mm,0)
-           |- ([yshift=2.5mm]stop.west);
-\draw[arr] (isrec.east)   -- node[lab,above] {no} ++(12mm,0) |- (done.east);
-
-% The replay branch belongs to the direct mechanism alone.
-\node[box, draw=dircol, text=dircol, text width=46mm,
-      right=14mm of examine] (replay)
-      {\textbf{direct} only: if the range overshot
-       $\log(\text{target}_{\max})$, discard the block, halve $\tau$ and
-       replay it exactly};
-\draw[arr, dircol] (examine.east) -- (replay.west);
-\draw[arr, dircol] (replay.north) |- (evolve.east);
-
-\end{tikzpicture}
-
-\vspace{2mm}
-\footnotesize
-\begin{tabular}{@{}p{4mm}l@{\hspace{4mm}}p{92mm}@{}}
-$\ddagger$ & \textcolor{heapcol}{\textbf{heap}},
-          \textcolor{unifcol}{\textbf{uniformized}}\hspace*{0pt}
-        & a running bound on the weight spread exists at every instant, so the
-          stop is the moment it reaches $\log(\text{target}_{\max})$ \\[1mm]
-        & \textcolor{dircol}{\textbf{direct}}
-        & no such bound exists mid-block, so the stop is predicted in advance
-          from an adaptive step $\tau$ \\[2mm]
-$\dagger$ & \textcolor{heapcol}{\textbf{heap}}
-        & every process on one global clock, events ordered by a binary heap;
-          rejection-free \\[1mm]
-        & \textcolor{unifcol}{\textbf{uniformized}}
-        & proposals generated at a configuration-independent maximal rate,
-          rejected down to the true transition rate \\[1mm]
-        & \textcolor{dircol}{\textbf{direct}}
-        & one walker at a time, run alone from stop to stop; rejection-free \\
-\end{tabular}
-
-\caption{The cloning loop of Section \ref{sec:algorithm}. The flow chart is common to the three event mechanisms; the two steps at which they differ are marked $\ddagger$ and $\dagger$, as in the boxed procedure, and expanded below the chart, and the replay branch exists for the direct mechanism alone.}
-\label{fig:algorithm}
-\end{figure}
+The algorithmic loop is drawn as a flow chart in \texttt{Simulator/docs/SIMULATION\_FLOW.md}, which shows it for the three event mechanisms at once: they plan the same stops and record and resample identically, and differ only in how the population is carried to a stop and how the finished block is judged.
 
 \subsection{Implementation}
 \label{sec:implementation}

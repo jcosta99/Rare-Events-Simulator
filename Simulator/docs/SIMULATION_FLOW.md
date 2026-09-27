@@ -119,7 +119,7 @@ flowchart TD
     bnd --> apply
     apply["apply the event: update the<br/>weight, flip the sites,<br/>add the current"]
     apply --> masks["update the masks"]
-    masks --> rate["recompute the potential"]
+    masks --> rate["recompute the rates<br/>and the potential"]
     rate --> wait["draw the next<br/>event time"]
 ```
 
@@ -138,7 +138,7 @@ choice is according to simulation cost rather than of physics.
 | `heap` | every process holds one pending time; a binary heap keeps the earliest at the front | none | 1.2–2.8× `direct` | true chronological order, and an idea that may be useful elsewhere |
 | `uniformized` | one clock at the heaviest possible rate proposes any jump between adjacent sites | rejected down to the true rate | 2.7–5.1× `direct` | simple enough to be obviously correct, so it benchmarks the other two |
 
-The cost column is measured, not estimated. Figures 6 and 7 of [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf) time the three mechanisms against lattice size and against population, for each model separately, and Section 1.5.2 reads the speedups off them.
+The cost column is measured, not estimated. Figures 5 and 6 of [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf) time the three mechanisms against lattice size and against population, for each model separately, and Section 1.5.2 reads the speedups off them.
 
 ## Where to look in the code
 
