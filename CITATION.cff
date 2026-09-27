@@ -8,14 +8,7 @@ authors:
 repository-code: "https://github.com/jcosta99/monitored-exclusion-rare-events"
 license: MIT
 abstract: >-
-  A C++20 cloning engine behind a Python interface, estimating the cumulant
-  generating function of the time-integrated current in one-dimensional
-  exclusion processes, with and without monitoring. It covers the whole
-  next-nearest-neighbour rate family, of which WASEP and KLS are the two named
-  instances, on an open chain or a periodic ring, through three interchangeable
-  event mechanisms. The physics and the population-dynamics algorithm are prior
-  work, cited in the accompanying notes; what is offered here is their
-  implementation and its validation.
+  A C++ cloning engine behind a Python interface, estimating the cumulant generating function of the time-integrated current in one-dimensional exclusion processes, with and without monitoring. It covers the whole next-nearest-neighbour rate family, of which WASEP and KLS are the two named instances, on an open chain or a periodic ring, through three interchangeable event mechanisms. 
 keywords:
   - large deviations
   - cumulant generating function
