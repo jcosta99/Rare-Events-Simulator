@@ -128,9 +128,4 @@ The bibliography for the theory notes is in [`algorithm_refs.bib`](Simulator/doc
 
 ## Citation
 
-If this simulator supported published work, a citation is welcome:
-[`CITATION.cff`](CITATION.cff) carries the metadata, and GitHub renders it as a
-*Cite this repository* button with a BibTeX export. The physics and the
-population-dynamics algorithm are prior work and are cited in
-[`theory_algorithm_implementation.pdf`](Simulator/docs/theory_algorithm_implementation.pdf);
-what this repository adds is their implementation and its validation.
+If this simulator supported published work, a citation is welcome — GitHub's Cite this repository button gives a ready BibTeX entry.
