@@ -1,8 +1,6 @@
 # Exact reference material
 
-Small-system results the simulator can be checked against, and the figures drawn
-from them. Unlike the runs under [`../data/`](../data), everything here is
-either exact or cheap enough to regenerate, so it is carried in the repository.
+Small-system results the simulator can be checked against, and the figures drawn from them. 
 
 ```text
 validation/
