@@ -192,31 +192,47 @@ def command_for_job(job, simulator_dir=SIMULATOR_DIR,
     return command
 
 
+def filename_parameters(job):
+    """The parameters that reach the result filename, with defaults filled in.
+
+    Everything a job leaves out takes the runner default, and the ones that
+    matter are these: two jobs agreeing on all of them would write the same
+    file.  Returned in order as (name, value) pairs so that ``--dry-run`` can
+    print exactly what ``reject_output_collisions`` compares.
+    """
+
+    values = RUNNER_DEFAULTS | job
+    model = str(values.get('model', 'KLS')).upper()
+    boundary = values['boundary']
+    named = [
+        ('model', model), ('dynamics', values['dynamics']),
+        ('length', values['length']), ('walkers', values['walkers']),
+        ('time', values['time']), ('field', values['field']),
+        ('bias', values['bias']),
+        ('measurement_strength', values['measurement_strength']),
+        ('boundary', boundary), ('seed', values['seed']),
+    ]
+    if boundary == 'periodic':
+        named.append(('filling', values['filling']))
+    else:
+        # ``initial`` only reaches the filename on an open chain, because a
+        # ring ignores it and fixes its particle number from the filling.
+        named.extend((name, values[name]) for name in ('alpha', 'gamma', 'delta', 'beta'))
+        named.append(('initial', values['initial']))
+    if model == 'KLS':
+        named.extend((('epsilon', values['epsilon']), ('delta_kls', values['delta_kls'])))
+    elif model == 'NNN':
+        named.extend((('right_weights', tuple(values['right_weights'])),
+                      ('left_weights', tuple(values['left_weights']))))
+    return named
+
+
 def output_identity(job, project_dir=PROJECT_DIR):
     if 'output' in job:
         output = Path(job['output'])
         return ('output', str(output if output.is_absolute()
                               else project_dir / output))
-    values = RUNNER_DEFAULTS | job
-    model = str(values.get('model', 'KLS')).upper()
-    boundary = values['boundary']
-    identity = [
-        model, values['dynamics'], values['length'], values['walkers'],
-        values['time'], values['field'], values['bias'],
-        values['measurement_strength'], boundary, values['seed'],
-    ]
-    if boundary == 'periodic':
-        identity.append(values['filling'])
-    else:
-        # ``initial`` only reaches the filename on an open chain, because a
-        # ring ignores it and fixes its particle number from the filling.
-        identity.extend(values[name] for name in ('alpha', 'gamma', 'delta', 'beta'))
-        identity.append(values['initial'])
-    if model == 'KLS':
-        identity.extend((values['epsilon'], values['delta_kls']))
-    elif model == 'NNN':
-        identity.extend((tuple(values['right_weights']), tuple(values['left_weights'])))
-    return tuple(identity)
+    return tuple(value for _, value in filename_parameters(job))
 
 
 def reject_output_collisions(jobs, project_dir=PROJECT_DIR):
@@ -290,8 +306,11 @@ def main():
     print(f'Expanded {len(commands)} simulation(s); running up to {workers} '
           f'at once on {available} available CPU(s).')
     if args.dry_run:
-        for number, command in enumerate(commands, start=1):
+        for number, (job, command) in enumerate(zip(jobs, commands), start=1):
             print(f'[{number}/{len(commands)}] {shlex.join(command)}')
+            resolved = '  '.join(f'{name}={value}'
+                                 for name, value in filename_parameters(job))
+            print(f'      filename parameters: {resolved}')
         return
 
     failures = run_batches(commands, project_dir, workers)
