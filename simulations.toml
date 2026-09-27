@@ -8,12 +8,12 @@ length = 32                 # Number of lattice sites, L.
 walkers = 500               # Number of population-dynamics walkers, M.
 time = 200.0                # Final simulation time.
 record_interval = 25.0      # Simulation time between recorded output rows.
-target_min = 5.0            # Resample once the walker weights differ by this factor.
-target_max = 10.0           # Never let them differ by more than this factor.
+target_min = 5.0            # Resample once the walker weights differ by more than this factor.
+target_max = 10.0           # Never let walker weights differ by more than this factor.
 progress = 4                # Print progress after every this many recorded rows.
 dynamics = "direct"         # "direct" evolves one walker at a time between fixed cloning instants and is the fastest; "heap" keeps every walker on one clock and clones the moment a running certificate trips; "uniformized" blindly samples one walker to jump and rejects the blocked attempts, which is slower and kept for validation.
 field = 2.0                 # External driving field, E.
-measurement_strength = 0.0  # Monitoring/counting coupling, k.
+measurement_strength = 0.0  # Measurement strength, k.
 boundary = "open"           # "open" chain or "periodic" ring.
 #filling = 0.3              # Particle density on a periodic ring; ignored when open.
 alpha = 1.0                 # Left-reservoir particle injection rate.
@@ -22,29 +22,23 @@ delta = 1.0                 # Right-reservoir particle injection rate.
 beta = 1.0                  # Right-reservoir particle removal rate.
 seed = 12345                # Random-number-generator seed.
 
-# Every Cartesian combination of these arrays is run.  Three points of a CGF
-# curve; subtract the s = 0 run from the others to get the CGF itself.
+# Every Cartesian combination of these arrays is run.  Three points of a CGF curve; subtract the s = 0 run from the others to get the CGF itself.
 [sweep]
 bias = [-0.5, 0.0, 0.5]     # Current-counting field, s.
 
-# Each table is one correlated parameter case, combined with the full sweep, so
-# the two below give six runs in all.  They are cases rather than a sweep
-# because the parameters move together: `epsilon` belongs only to KLS and the
-# weight vectors only to NNN, so no Cartesian product of them makes sense.
+# Each table is one correlated parameter case, combined with the full sweep, so the two below give six runs in all.  They are cases rather than a sweep because the parameters move together: `epsilon` belongs only to KLS and the weight vectors only to NNN, so no Cartesian product of them makes sense.
 [[cases]]
 model = "KLS"               # Katz-Lebowitz-Spohn, its eight rates built internally.
-epsilon = 0.6               # Next-nearest-neighbour coupling.
-delta_kls = 0.0             # Asymmetry; 0 keeps particle-hole symmetry.
+epsilon = 0.6               # Repulsion parameter.
+delta_kls = 0.0             # Asymmetry parameter; 0 keeps particle-hole symmetry.
 
-# The same physics written out rate by rate.  A hop's rate depends on the two
-# sites flanking the pair it crosses, so each direction takes four rates,
-# ordered by those flanking occupations: (0,0) (0,1) (1,0) (1,1).
+# A hop's rate depends on the two sites flanking the pair it crosses, so each direction takes four rates, ordered by those flanking occupations: (0,0) (0,1) (1,0) (1,1).
 [[cases]]
 model = "NNN"
-right_weights = [1.0, 0.4, 1.6, 1.0]   # rightward jumps, one rate per flanking pattern
-left_weights  = [1.0, 1.6, 0.4, 1.0]   # leftward jumps, same ordering
+right_weights = [1.0, 0.4, 1.6, 1.0]   # right jumps, one rate per flanking pattern
+left_weights  = [1.0, 1.6, 0.4, 1.0]   # left jumps, same ordering
 
 # To add more, repeat the pattern with your own parameters:
-#
+
 #[[cases]]
 #model = "WASEP"            # one rate per direction, no interaction to give
