@@ -10,6 +10,11 @@ results and restart rules, and [`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md) expl
 
 ## Vocabulary
 
+All of this is introduced properly in
+[`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf).
+What follows is a summary of the terms the diagrams below use, so that this
+file can be read on its own.
+
 - **Walker** — one trajectory in the population, biased towards rare currents.
 - **Reference** — a single untilted trajectory, used for the monitoring overlap.
 - **Potential** `V_i` — the instantaneous rate at which walker `i`'s weight
@@ -21,6 +26,13 @@ results and restart rules, and [`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md) expl
 - **Resampling** — replacing the weighted population by `M` equally weighted
   descendants, preserving the influence of the old weights in the normalization.
 - **Certificate** — a running upper bound on how far the weights can have spread. Only a mechanism that keeps one global clock can watch it.
+- **Bond** — a neighbouring pair of sites, across which a particle may hop.
+- **Rate group** — a hop's rate depends only on the two sites flanking the
+  pair, and those have four occupation patterns, so the allowed hops in each
+  direction fall into four rate groups, every hop in a group sharing one rate.
+- **Mask** — one word per rate group, with bit `b` set when bond `b` currently
+  permits a hop of that group. Counting the set bits gives the rate; finding
+  the `n`-th picks the bond.
 
 ## 1. From a plan to a figure
 
@@ -122,8 +134,6 @@ flowchart TD
     masks --> rate["recompute the rates<br/>and the potential"]
     rate --> wait["draw the next<br/>event time"]
 ```
-
-The vocabulary in these boxes — bonds, rate groups, masks — is defined in [`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf).
 
 The route `select_set_bit` takes to pick the set bit is decided by the processor, as explained in [`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md).
 
