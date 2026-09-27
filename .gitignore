@@ -110,3 +110,7 @@ notebooks/NNN_diffusivity_from_density_profile.ipynb
 # A working plan kept out of what this repository publishes; the shipped
 # simulations.toml is the small one meant to be run on first contact.
 simulations_ISEP.toml
+
+# The script behind the large-L figure reads runs that are not yet part of any
+# shipped plan, so it is kept locally until it can be reproduced from one.
+validation/make_convergence_figure.py

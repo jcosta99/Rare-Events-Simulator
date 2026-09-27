@@ -8,8 +8,7 @@ either exact or cheap enough to regenerate, so it is carried in the repository.
 validation/
   exact/SSEP_TM.py              exact diagonalisation of the tilted generator
   data/SSEP_TM_L<L>.csv         its output, one row per counting field
-  make_convergence_figure.py    draws the large-L comparison from ../data
-  figures/                      what it draws
+  figures/                      the large-L benchmark
 ```
 
 ## Exact diagonalisation
@@ -26,3 +25,6 @@ python validation/exact/SSEP_TM.py
 
 which writes `data/SSEP_TM_L<L>.csv` for the reservoir rates named in each file's header. The defaults are `alpha = beta = 1` with `gamma = delta = 0`, holding the reservoirs at `rho_L = 1` and `rho_R = 0`.
 
+## Large-L benchmark
+
+[`figures/`](figures) contains a benchmark of the engine against the large-L closed form of the open SSEP cumulant generating function (Derrida; Bodineau and Derrida), which holds with no external field and equal reservoir densities, to leading order in `L`. The rescaled function `(L-1) lambda(s)` is plotted for `L = 8` to `128`, with `M = 2000` walkers and `t = 2e4`: on the left the whole curve collapses onto the limit as the lattice grows, and on the right a few counting fields approach it monotonically from below. The figure is discussed in the theory notes; the runs behind it are not yet part of a shipped simulation plan.
