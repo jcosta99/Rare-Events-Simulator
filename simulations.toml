@@ -4,9 +4,6 @@
 
 # Values shared by every expanded simulation.
 [fixed]
-model = "KLS"               # "WASEP", "KLS", or explicit-rate "NNN".
-epsilon = 0.6               # KLS next-nearest-neighbour coupling; ignored unless model = "KLS".
-delta_kls = 0.0             # KLS asymmetry; 0 keeps particle-hole symmetry.
 length = 32                 # Number of lattice sites, L.
 walkers = 500               # Number of population-dynamics walkers, M.
 time = 200.0                # Final simulation time.
@@ -25,22 +22,29 @@ delta = 1.0                 # Right-reservoir particle injection rate.
 beta = 1.0                  # Right-reservoir particle removal rate.
 seed = 12345                # Random-number-generator seed.
 
-# Every Cartesian combination of these arrays is run.  Here: one CGF curve.
+# Every Cartesian combination of these arrays is run.  Three points of a CGF
+# curve; subtract the s = 0 run from the others to get the CGF itself.
 [sweep]
-bias = [-1.0, -0.5, 0.0, 0.5, 1.0]   # Current-counting field, s.  Subtract the s = 0 run to get the CGF.
+bias = [-0.5, 0.0, 0.5]     # Current-counting field, s.
 
-# Each table is one correlated parameter case, combined with the full sweep.
-# With none given, the [fixed] block above is run on its own.
-#
-# The explicit-rate model goes here.  A hop's rate depends on the two sites
-# flanking the pair it crosses, so each direction takes four rates, ordered by
-# those flanking occupations: (0,0) (0,1) (1,0) (1,1).  Set model = "NNN" above
-# and uncomment a case to use them.
+# Each table is one correlated parameter case, combined with the full sweep, so
+# the two below give six runs in all.  They are cases rather than a sweep
+# because the parameters move together: `epsilon` belongs only to KLS and the
+# weight vectors only to NNN, so no Cartesian product of them makes sense.
+[[cases]]
+model = "KLS"               # Katz-Lebowitz-Spohn, its eight rates built internally.
+epsilon = 0.6               # Next-nearest-neighbour coupling.
+delta_kls = 0.0             # Asymmetry; 0 keeps particle-hole symmetry.
+
+# The same physics written out rate by rate.  A hop's rate depends on the two
+# sites flanking the pair it crosses, so each direction takes four rates,
+# ordered by those flanking occupations: (0,0) (0,1) (1,0) (1,1).
+[[cases]]
+model = "NNN"
+right_weights = [1.0, 0.4, 1.6, 1.0]   # rightward jumps, one rate per flanking pattern
+left_weights  = [1.0, 1.6, 0.4, 1.0]   # leftward jumps, same ordering
+
+# To add more, repeat the pattern with your own parameters:
 #
 #[[cases]]
-#right_weights = [1.0, 0.75, 0.75, 1.0]   # rightward jumps, one rate per flanking pattern
-#left_weights  = [1.0, 0.75, 0.75, 1.0]   # leftward jumps, same ordering
-#
-#[[cases]]
-#right_weights = [1.0, 0.5, 0.5, 1.0]
-#left_weights  = [1.0, 0.5, 0.5, 1.0]
+#model = "WASEP"            # one rate per direction, no interaction to give
