@@ -29,7 +29,7 @@ file can be read on its own.
 - **Bond** — a neighbouring pair of sites, across which a particle may hop.
 - **Rate group** — a hop's rate depends only on the two sites flanking the
   pair, and those have four occupation patterns, so the allowed hops in each
-  direction fall into four rate groups, every hop in a group sharing one rate.
+  direction fall into four rate groups. Every hop in a group thus shares the same rate.
 - **Mask** — one word per rate group, with bit `b` set when bond `b` currently
   permits a hop of that group. Counting the set bits gives the rate; finding
   the `n`-th picks the bond.
@@ -135,7 +135,9 @@ flowchart TD
     rate --> wait["draw the next<br/>event time"]
 ```
 
-The route `select_set_bit` takes to pick the set bit is decided by the processor, as explained in [`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md).
+The particular implementation of all these steps is more explicitly detailed in
+[`theory_algorithm_implementation.pdf`](theory_algorithm_implementation.pdf).
+The route `select_set_bit` takes to pick the set bit is decided by the processor, as explained in [`CPU_REQUIREMENTS.md`](CPU_REQUIREMENTS.md). 
 
 ## 4. Why three mechanisms
 
