@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: Costa
     given-names: João
-repository-code: "https://github.com/jcosta99/monitored-exclusion-rare-events"
+repository-code: "https://github.com/jcosta99/Rare-Events-Simulator"
 license: MIT
 abstract: >-
   A C++ cloning engine behind a Python interface, estimating the cumulant generating function of the time-integrated current in one-dimensional exclusion processes, with and without monitoring. It covers the whole next-nearest-neighbour rate family, of which WASEP and KLS are the two named instances, on an open chain or a periodic ring, through three interchangeable event mechanisms. 
