@@ -106,3 +106,7 @@ _minted-*/
 
 # A working notebook kept out of what this repository publishes.
 notebooks/NNN_diffusivity_from_density_profile.ipynb
+
+# A working plan kept out of what this repository publishes; the shipped
+# simulations.toml is the small one meant to be run on first contact.
+simulations_ISEP.toml
